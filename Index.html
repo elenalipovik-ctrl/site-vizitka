@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Елена Липовик | CFO на аутсорсе</title>
+    
+    <!-- Подключаем Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Подключаем Three.js для 3D графики -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Настройка темы Digital Quartz & Deep Sapphire -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sapphire: {
+                            900: '#010a15', // Очень глубокий океанический синий (почти черный)
+                            800: '#04152d', // Глубокий синий
+                            700: '#0a244a', // Светлый синий для карточек
+                        },
+                        quartz: {
+                            glow: '#00a3ff', // Электрический синий (чистый неон, как свечение медузы)
+                            ice: '#0055ff',  // Насыщенный синий акцент
+                            dim: '#0c2e5e'   // Приглушенный сине-серый
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap');
+        
+        body {
+            background-color: #010a15; /* Sapphire 900 */
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Эффект матового стекла (Glassmorphism) */
+        .glass-card {
+            background: rgba(10, 36, 74, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 163, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-header {
+            background: rgba(1, 10, 21, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0, 163, 255, 0.1);
+        }
+
+        /* Анимация свечения для кнопок */
+        .btn-quartz {
+            background: linear-gradient(135deg, #0055ff 0%, #00a3ff 100%);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(0, 163, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-quartz:hover {
+            box-shadow: 0 0 30px rgba(0, 163, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* 3D Canvas контейнер */
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none; /* Чтобы не мешал кликать на текст */
+        }
+        
+        /* Акцентный градиентный текст */
+        .text-gradient {
+            background: linear-gradient(to right, #ffffff, #00a3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-quartz-glow selection:text-sapphire-900">
+
+    <!-- Навигация (Header) -->
+    <header class="fixed w-full top-0 z-50 glass-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-full bg-white/10 border border-quartz-glow/30 flex items-center justify-center font-medium text-quartz-glow text-sm">
+                        ЕЛ
+                    </div>
+                    <span class="font-light text-white text-lg tracking-wide">Елена Липовик</span>
+                </div>
+                
+                <!-- Десктопное меню -->
+                <nav class="hidden md:flex space-x-10 relative z-10">
+                    <a href="#about" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Обо мне</a>
+                    <a href="#format" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Формат работы</a>
+                    <a href="#contacts" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Контакты</a>
+                </nav>
+                <div class="hidden md:flex relative z-10">
+                    <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full">
+                        Написать в Telegram
+                    </a>
+                </div>
+
+                <!-- Кнопка мобильного меню (Гамбургер) -->
+                <div class="md:hidden relative z-10 flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2">
+                        <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мобильное меню (Скрыто по умолчанию) -->
+        <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-sapphire-900/95 backdrop-blur-xl flex-col items-center justify-center space-y-8 min-h-screen">
+            <button id="close-menu-btn" class="absolute top-6 right-6 text-gray-300 hover:text-white p-2">
+                <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <a href="#about" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Обо мне</a>
+            <a href="#format" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Формат работы</a>
+            <a href="#contacts" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Контакты</a>
+            <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz inline-flex items-center justify-center px-8 py-4 mt-4 text-lg font-semibold rounded-full">
+                Написать в Telegram
+            </a>
+        </div>
+    </header>
+
+    <!-- Экран 1: Главный (Hero) -->
+    <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 min-h-screen flex items-center overflow-hidden">
+        <!-- Контейнер для 3D графики -->
+        <div id="canvas-container"></div>
+        
+        <!-- Фоновые свечения (Subtle glows) -->
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-quartz-glow/5 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-[30rem] h-[30rem] bg-quartz-ice/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
+                
+                <!-- Текстовая часть -->
+                <div class="lg:col-span-7 mb-12 lg:mb-0">
+                    <div class="inline-flex items-center px-4 py-1.5 rounded-full glass-card text-xs font-medium text-quartz-glow mb-8 tracking-wider uppercase">
+                        <span class="w-2 h-2 rounded-full bg-quartz-glow mr-2 animate-pulse"></span>
+                        CFO • Финансовый директор
+                    </div>
+                    
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl font-light tracking-tight text-white leading-[1.15] mb-8">
+                        Финансовая система нужна для того, чтобы <span class="text-gradient font-medium">управлять будущим.</span>
+                    </h1>
+                    
+                    <p class="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl leading-relaxed font-light">
+                        Выстраиваю архитектуру учета, которая показывает реальное состояние бизнеса и дает собственнику прочную основу для решений о прибыли, деньгах и капитале.
+                    </p>
+                    
+                    <!-- Факты -->
+                    <div class="space-y-4 text-gray-300 mb-10 text-sm md:text-base font-light">
+                        <div class="flex items-center glass-card px-4 py-3 rounded-xl w-fit">
+                            <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-quartz-glow mr-3"></div>
+                            <p>Более 20 лет в корпоративных финансах</p>
+                        </div>
+                        <div class="flex items-center glass-card px-4 py-3 rounded-xl w-fit">
+                            <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-quartz-ice mr-3"></div>
+                            <p>Практика в Big4 и консалтинге</p>
+                        </div>
+                        <div class="flex items-center glass-card px-4 py-3 rounded-xl w-fit">
+                            <div class="flex-shrink-0 h-1.5 w-1.5 rounded-full bg-quartz-glow mr-3"></div>
+                            <p>Международные компании и крупные российские холдинги</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz inline-flex justify-center items-center px-8 py-4 text-base font-semibold rounded-full">
+                            Обсудить задачу
+                        </a>
+                        <a href="#about" class="inline-flex justify-center items-center px-8 py-4 border border-white/20 text-base font-medium rounded-full text-white hover:bg-white/5 transition-all duration-200">
+                            Узнать подход
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Правая часть: место для 3D будет перекрывать этот блок визуально, но оставим плашки -->
+                <div class="lg:col-span-5 relative hidden lg:block h-[500px]">
+                    <!-- Плашки парят поверх 3D графики -->
+                    <div class="absolute top-10 right-0 glass-card p-5 rounded-2xl border-l-2 border-l-quartz-glow animate-[bounce_4s_infinite]">
+                        <p class="text-xs text-quartz-ice mb-1 uppercase tracking-wider">CFO • Advisory</p>
+                        <p class="font-medium text-white text-sm">Big4 • Международные группы</p>
+                    </div>
+                    
+                    <div class="absolute bottom-10 left-0 glass-card p-6 rounded-2xl border-l-2 border-l-quartz-glow max-w-[220px] animate-[bounce_5s_infinite]">
+                        <p class="text-4xl font-light text-quartz-glow mb-2">20+</p>
+                        <p class="text-xs text-gray-400 leading-relaxed">лет в корпоративных финансах, выстраивание систем для МСБ</p>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
+
+    <!-- Экран 2: Обо мне -->
+    <section id="about" class="py-24 bg-sapphire-800 relative border-y border-white/5">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wMykiLz48L3N2Zz4=')] opacity-50"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="max-w-3xl mb-16">
+                <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight">От цифр к <span class="text-quartz-glow">управленческим решениям.</span></h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+                <div class="space-y-6 text-gray-400 leading-relaxed font-light text-lg">
+                    <p>
+                        Я финансовый директор с опытом более 20 лет. В моей практике Big4, международные компании с европейским, американским и индийским капиталом, а также крупные российские структуры.
+                    </p>
+                    <p>
+                        Я работала с комплексными бизнес-моделями в железнодорожной логистике, фармацевтике, FMCG, детских товарах, оптовой торговле и e-commerce.
+                    </p>
+                </div>
+                <div class="space-y-6 text-gray-400 leading-relaxed font-light text-lg">
+                    <p>
+                        Этот опыт научил меня видеть за цифрами весь бизнес целиком — как компания зарабатывает, сколько капитала требует ее рост, где находятся точки потери управляемости. Я создаю финансовую систему, которая помогает собственнику выбирать приоритеты, оценивать последствия управленческих решений и сохранять полный контроль над бизнесом.
+                    </p>
+                    <div class="glass-card p-6 rounded-2xl border-l-4 border-l-quartz-glow mt-6">
+                        <p class="font-medium text-white text-base">
+                            Моя главная задача — перевести сырые данные в ясную картину, помогая собственнику точно определить следующие шаги для развития компании.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Экран 3: Формат работы -->
+    <section id="format" class="py-24 bg-sapphire-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight mb-6">Партнерство на уровне <span class="text-quartz-glow">собственника.</span></h2>
+                <p class="text-lg text-gray-400 leading-relaxed max-w-3xl mx-auto font-light">
+                    Я работаю напрямую с собственниками бизнеса и CEO. Весь процесс аналитики, архитектуры учета и поиска точек роста веду лично. Для обеспечения максимальной скорости и точности использую передовые технологии и AI-агентов. Это гарантирует полную конфиденциальность, исключает человеческий фактор и дает результат корпоративного уровня без раздутого штата сотрудников.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Карточка 1 -->
+                <div class="glass-card p-8 rounded-2xl transition-transform hover:-translate-y-2 duration-300">
+                    <div class="w-12 h-12 bg-quartz-glow/10 rounded-xl flex items-center justify-center text-quartz-glow mb-6 border border-quartz-glow/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-3">Прямой контакт</h3>
+                    <p class="text-gray-400 text-sm font-light">Общение без посредников. Ясная коммуникация на языке CEO.</p>
+                </div>
+                
+                <!-- Карточка 2 -->
+                <div class="glass-card p-8 rounded-2xl transition-transform hover:-translate-y-2 duration-300">
+                    <div class="w-12 h-12 bg-quartz-glow/10 rounded-xl flex items-center justify-center text-quartz-glow mb-6 border border-quartz-glow/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-3">Технологичность</h3>
+                    <p class="text-gray-400 text-sm font-light">Архитектура в SaaS (Финтабло) и AI-агенты для скорости данных.</p>
+                </div>
+                
+                <!-- Карточка 3 -->
+                <div class="glass-card p-8 rounded-2xl transition-transform hover:-translate-y-2 duration-300">
+                    <div class="w-12 h-12 bg-quartz-glow/10 rounded-xl flex items-center justify-center text-quartz-glow mb-6 border border-quartz-glow/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-3">Секретность</h3>
+                    <p class="text-gray-400 text-sm font-light">Строгая защита данных и отсутствие утечек коммерческой тайны.</p>
+                </div>
+                
+                <!-- Карточка 4 -->
+                <div class="glass-card p-8 rounded-2xl transition-transform hover:-translate-y-2 duration-300">
+                    <div class="w-12 h-12 bg-quartz-glow/10 rounded-xl flex items-center justify-center text-quartz-glow mb-6 border border-quartz-glow/20">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-lg font-medium text-white mb-3">Оптимизация</h3>
+                    <p class="text-gray-400 text-sm font-light">Результат уровня корпорации без необходимости содержать штат.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Экран 4: Контакты -->
+    <section id="contacts" class="py-24 bg-sapphire-800 border-t border-white/5 relative overflow-hidden">
+        <!-- Декоративный круг -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full pointer-events-none"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-white/5 rounded-full pointer-events-none"></div>
+        
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <h2 class="text-3xl md:text-5xl font-light text-white mb-6 tracking-tight">Начнем с оценки вашей <br><span class="text-quartz-glow font-medium">финансовой модели.</span></h2>
+            <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light">
+                Напишите мне напрямую, чтобы обсудить задачи вашего бизнеса и варианты сотрудничества.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-6">
+                <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz w-full sm:w-auto inline-flex justify-center items-center px-10 py-4 text-base font-semibold rounded-full">
+                    Написать лично в Telegram
+                </a>
+                <a href="https://t.me/helen_lipovik" target="_blank" class="w-full sm:w-auto inline-flex justify-center items-center px-10 py-4 glass-card text-base font-medium rounded-full text-white hover:bg-white/10 transition-all duration-200">
+                    Перейти в Telegram-канал
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-sapphire-900 border-t border-white/5 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-sm text-gray-500 font-light">
+                &copy; 2026 Елена Липовик. Все права защищены.
+            </div>
+            <div class="text-sm text-gray-500 font-light flex items-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-quartz-glow mr-2 inline-block"></span>
+                CFO на аутсорсе
+            </div>
+        </div>
+    </footer>
+
+    <!-- Скрипт 3D анимации (Three.js) -->
+    <script>
+        window.onload = function () {
+            const container = document.getElementById('canvas-container');
+            
+            // Настройка сцены
+            const scene = new THREE.Scene();
+            
+            // Камера
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 15;
+            // Сдвигаем камеру вправо, чтобы объект был в правой части экрана (где должна была быть фото)
+            camera.position.x = window.innerWidth > 1024 ? -5 : 0; 
+
+            // Рендерер с прозрачным фоном
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Группа для всех 3D объектов (чтобы вращать все вместе)
+            const group = new THREE.Group();
+            scene.add(group);
+
+            // 1. Центральный кристалл (Digital Quartz - символ структуры)
+            const crystalGeometry = new THREE.OctahedronGeometry(4, 0);
+            const crystalMaterial = new THREE.MeshPhysicalMaterial({
+                color: 0x0055ff, // Deep electric blue
+                emissive: 0x010a15,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.8,
+                roughness: 0.1,
+                metalness: 0.8
+            });
+            const crystal = new THREE.Mesh(crystalGeometry, crystalMaterial);
+            group.add(crystal);
+
+            // Внутреннее ядро кристалла (сплошное)
+            const coreGeometry = new THREE.OctahedronGeometry(2.5, 0);
+            const coreMaterial = new THREE.MeshStandardMaterial({
+                color: 0x010a15,
+                emissive: 0x00a3ff,
+                emissiveIntensity: 0.4,
+                transparent: true,
+                opacity: 0.9
+            });
+            const core = new THREE.Mesh(coreGeometry, coreMaterial);
+            group.add(core);
+
+            // 2. Абстрактный финансовый график (столбики вокруг кристалла)
+            const barsCount = 12;
+            for (let i = 0; i < barsCount; i++) {
+                const height = 1 + Math.random() * 4; // Случайная высота
+                const barGeo = new THREE.BoxGeometry(0.3, height, 0.3);
+                const barMat = new THREE.MeshStandardMaterial({
+                    color: 0x00a3ff,
+                    transparent: true,
+                    opacity: 0.6,
+                    emissive: 0x00a3ff,
+                    emissiveIntensity: 0.6
+                });
+                const bar = new THREE.Mesh(barGeo, barMat);
+                
+                // Располагаем столбики по кругу
+                const angle = (i / barsCount) * Math.PI * 2;
+                const radius = 6;
+                bar.position.x = Math.cos(angle) * radius;
+                bar.position.z = Math.sin(angle) * radius;
+                bar.position.y = (height / 2) - 2; // Выравниваем низ
+                
+                // Поворачиваем столбики лицом к центру
+                bar.lookAt(0, bar.position.y, 0);
+                
+                group.add(bar);
+            }
+
+            // 3. Плавающие частицы (данные)
+            const particlesGeo = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+            
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 30; // Разброс частиц
+            }
+            particlesGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const particlesMat = new THREE.PointsMaterial({
+                size: 0.05,
+                color: 0x00a3ff,
+                transparent: true,
+                opacity: 0.8
+            });
+            const particlesMesh = new THREE.Points(particlesGeo, particlesMat);
+            scene.add(particlesMesh);
+
+            // Освещение
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00a3ff, 2, 50);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+            
+            const pointLight2 = new THREE.PointLight(0x0055ff, 1.5, 50);
+            pointLight2.position.set(-5, -5, -5);
+            scene.add(pointLight2);
+
+            // Анимация
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+
+            // Обработка движения мыши для параллакс-эффекта
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - windowHalfX) * 0.001;
+                mouseY = (event.clientY - windowHalfY) * 0.001;
+            });
+
+            const clock = new THREE.Clock();
+
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+
+                // Плавное вращение группы
+                group.rotation.y += 0.002;
+                group.rotation.x = Math.sin(elapsedTime * 0.5) * 0.1; // Легкое покачивание
+                
+                // Вращение кристалла внутри
+                crystal.rotation.y -= 0.005;
+                crystal.rotation.x += 0.005;
+                core.rotation.y -= 0.005;
+
+                // Движение частиц
+                particlesMesh.rotation.y = elapsedTime * 0.05;
+
+                // Параллакс от мыши
+                targetX = mouseX * 2;
+                targetY = mouseY * 2;
+                
+                group.rotation.y += 0.05 * (targetX - group.rotation.y);
+                group.rotation.x += 0.05 * (targetY - group.rotation.x);
+
+                renderer.render(scene, camera);
+            }
+
+            animate();
+
+            // Обработка изменения размера окна
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.position.x = window.innerWidth > 1024 ? -5 : 0; 
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        // Скрипт для работы мобильного меню
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeMenuBtn = document.getElementById('close-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileLinks = document.querySelectorAll('.mobile-link');
+
+            function toggleMenu() {
+                mobileMenu.classList.toggle('hidden');
+                mobileMenu.classList.toggle('flex');
+                // Блокируем прокрутку основной страницы, когда меню открыто
+                document.body.classList.toggle('overflow-hidden');
+            }
+
+            if (mobileMenuBtn && closeMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener('click', toggleMenu);
+                closeMenuBtn.addEventListener('click', toggleMenu);
+
+                // Автоматически закрываем меню при клике на любую ссылку
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', toggleMenu);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
