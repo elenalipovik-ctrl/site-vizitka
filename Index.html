@@ -107,19 +107,20 @@
                 </div>
                 
                 <!-- Десктопное меню -->
-                <nav class="hidden md:flex space-x-10 relative z-10">
+                <nav class="hidden xl:flex space-x-8 relative z-10">
                     <a href="#about" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Обо мне</a>
                     <a href="#format" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Формат работы</a>
+                    <a href="#tools" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Финансовые инструменты</a>
                     <a href="#contacts" class="text-gray-300 font-bold hover:text-quartz-glow transition-colors duration-200 text-sm tracking-wide">Контакты</a>
                 </nav>
-                <div class="hidden md:flex relative z-10">
+                <div class="hidden xl:flex relative z-10">
                     <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-full">
                         Написать в Telegram
                     </a>
                 </div>
 
                 <!-- Кнопка мобильного меню (Гамбургер) -->
-                <div class="md:hidden relative z-10 flex items-center">
+                <div class="xl:hidden relative z-10 flex items-center">
                     <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none p-2">
                         <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -138,6 +139,7 @@
             </button>
             <a href="#about" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Обо мне</a>
             <a href="#format" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Формат работы</a>
+            <a href="#tools" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Финансовые инструменты</a>
             <a href="#contacts" class="mobile-link text-white text-2xl font-bold tracking-wide hover:text-quartz-glow transition-colors">Контакты</a>
             <a href="https://t.me/helen_lipovik" target="_blank" class="btn-quartz inline-flex items-center justify-center px-8 py-4 mt-4 text-lg font-semibold rounded-full">
                 Написать в Telegram
@@ -297,7 +299,27 @@
         </div>
     </section>
 
-    <!-- Экран 4: Контакты -->
+    <!-- Экран 4: Финансовые инструменты -->
+    <section id="tools" class="py-24 bg-sapphire-800 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-light text-white tracking-tight mb-5">Финансовые <span class="text-quartz-glow">инструменты</span></h2>
+                <p class="text-lg text-gray-400 font-light max-w-2xl mx-auto">Практичные инструменты для работы с цифрами.</p>
+            </div>
+            <div class="glass-card rounded-2xl p-8 md:p-12 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                <div class="max-w-2xl">
+                    <p class="text-quartz-glow text-sm font-medium tracking-wider uppercase mb-4">Инструмент / 01</p>
+                    <h3 class="text-2xl md:text-3xl font-light text-white tracking-tight mb-5">Валютный калькулятор</h3>
+                    <p class="text-lg text-gray-400 leading-relaxed font-light">Посмотрите курсы валют на выбранную дату и пересчитайте сумму по данным ЦБ РФ.</p>
+                </div>
+                <a href="https://currency.fin-partner.pro/" class="btn-quartz inline-flex items-center justify-center px-8 py-4 text-base font-semibold rounded-full whitespace-nowrap self-start lg:self-auto">
+                    Открыть калькулятор
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Экран 5: Контакты -->
     <section id="contacts" class="py-24 bg-sapphire-800 border-t border-white/5 relative overflow-hidden">
         <!-- Декоративный круг -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-white/5 rounded-full pointer-events-none"></div>
